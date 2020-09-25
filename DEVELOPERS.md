@@ -37,7 +37,7 @@ python3 download_model.py 1558M
 
 Build the Dockerfile and tag the created image as `gpt-2`:
 ```
-docker build --tag gpt-2 -f Dockerfile.gpu . # or Dockerfile.cpu
+docker build --tag gpt-2 -f Dockerfile.cpu .
 ```
 
 Start an interactive bash session from the `gpt-2` docker image.
@@ -45,7 +45,7 @@ Start an interactive bash session from the `gpt-2` docker image.
 You can opt to use the `--runtime=nvidia` flag if you have access to a NVIDIA GPU
 and a valid install of [nvidia-docker 2.0](https://github.com/nvidia/nvidia-docker/wiki/Installation-(version-2.0)).
 ```
-docker run --runtime=nvidia -it gpt-2 bash
+docker run -it gpt-2 bash
 ```
 
 # Running

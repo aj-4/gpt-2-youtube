@@ -3,21 +3,58 @@
 import fire
 import json
 import os
+import re
 import numpy as np
 import tensorflow as tf
 
 import model, sample, encoder
 
+sampleComments = """
+1: Great video, amazing.
+2: Thanks glad you enjoyed it.
+
+1: Would love to see you do a bot that messages people
+2: Good idea I'll keep it in mind
+
+1: Why did you change your hair?
+2: It was getting too long.
+
+1: Loving the beard bro
+2: haha
+
+1: So much value in this video
+2: Cheers man
+
+1: This was great, glad you are making this style of video
+2: It's fun for me too, thanks.
+
+
+1: Great, keep it up, proud of you.
+2: Cheers bro
+
+1: You're awesome bro.
+2: You too.
+
+1: Most honest YouTuber for sure.
+2: I try to be.
+
+1: Usually good but this one ain't it.
+2: Thanks for the feedback
+
+"""
+
+
 def interact_model(
-    model_name='124M',
+    model_name='774M',
     seed=None,
     nsamples=1,
     batch_size=1,
-    length=None,
+    length=100,
     temperature=1,
     top_k=0,
     top_p=1,
     models_dir='models',
+    comments=[]
 ):
     """
     Interactively run the model
@@ -69,11 +106,8 @@ def interact_model(
         ckpt = tf.train.latest_checkpoint(os.path.join(models_dir, model_name))
         saver.restore(sess, ckpt)
 
-        while True:
-            raw_text = input("Model prompt >>> ")
-            while not raw_text:
-                print('Prompt should not be empty!')
-                raw_text = input("Model prompt >>> ")
+        for comment in comments:
+            raw_text = sampleComments + "1: " + comment['text'] + "\n"
             context_tokens = enc.encode(raw_text)
             generated = 0
             for _ in range(nsamples // batch_size):
@@ -84,9 +118,15 @@ def interact_model(
                     generated += 1
                     text = enc.decode(out[i])
                     print("=" * 40 + " SAMPLE " + str(generated) + " " + "=" * 40)
-                    print(text)
+                    try:
+                        comment['res'] = (str(re.search("2\:.*", text).group(0))).split(':')[1]
+                        print("in: ", comment['text'], "out: ", comment['res'])
+                    except Exception as e:
+                        print('failed to parse comment res')
             print("=" * 80)
 
-if __name__ == '__main__':
-    fire.Fire(interact_model)
+        return comments
+
+# if __name__ == '__main__':
+#     fire.Fire(interact_model)
 
